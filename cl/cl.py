@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 import sys, time, fcntl, os
+import argparse
 from subprocess import *
 
 DEBUG = False
-
-# ^] = 0x1B
 
 addr = sys.argv[1]
 port = sys.argv[2]
@@ -23,7 +22,6 @@ p = Popen(["telnet", addr, str(port)], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 set_nonblocking(p.stdout.fileno())
 
 state = "not connected"
-conf  = list()
 lines = list()
 
 def send(msg, check_echo=True, add_crnl=True):
@@ -60,30 +58,31 @@ def get_all_lines():
             lines.append(l)
     print(lines)
     return lines
-# connect
-get_all_lines()
 
-# get to console
-send("")
-send("")
-time.sleep(1)
-
-l = get_all_lines()[-1]
-#l = l.rstrip("\r\n")
-
-if l[-1] == '>':
-    send("en")
-elif l[-1] != '#':
-    send("end")
+def connect_priviledged():
+    get_all_lines()
+    send("")
+    send("")
+    time.sleep(1)
     l = get_all_lines()[-1]
-assert l[-1] == '#', "should be in prviledged mode!"
-prompt = l
 
-send("terminal length 0")
-get_all_lines()
-send("sh run")
-time.sleep(5)
-configuration = get_all_lines()[:-2]
-print(".........")
-op("".join(configuration))
-exit(0)
+    if l[-1] == '>':
+        send("en")
+        l = get_all_lines()[-1]
+    elif l[-1] != '#':
+        send("end")
+        l = get_all_lines()[-1]
+
+    assert l[-1] == '#', "should be in prviledged mode!"
+    send("terminal length 0")
+    get_all_lines()
+
+def print_running_config():
+    send("sh run")
+    time.sleep(5)
+    configuration = get_all_lines()[:-2]
+    print(".........")
+    op("".join(configuration))
+
+connect_priviledged()
+print_running_config()
