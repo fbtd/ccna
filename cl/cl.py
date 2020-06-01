@@ -4,21 +4,25 @@ import sys, time, fcntl, os
 import argparse
 from subprocess import *
 
-DEBUG = False
-
-addr = sys.argv[1]
-port = sys.argv[2]
-int(port)
+parser = argparse.ArgumentParser()
+parser.add_argument("host", help="target hostname")
+parser.add_argument("port", help="target port", type=int)
+parser.add_argument("-d", "--debug", help="enable debugging output",
+                                     action="store_true")
+parser.add_argument("-s", "--show-run", "--sh-run", dest="sh_run",
+                                    help="show running configuration",
+                                    action="store_true")
+args = parser.parse_args()
 
 def set_nonblocking(fd):
     flags = fcntl.fcntl(fd, fcntl.F_GETFL)
     fcntl.fcntl(fd, fcntl.F_SETFL,  os.O_NONBLOCK | flags)
 
 op = print
-def print(*args, **kwargs):
-    if DEBUG: op(*args, **kwargs)
+def print(*arg, **kwargs):
+    if args.debug: op(*arg, **kwargs)
 
-p = Popen(["telnet", addr, str(port)], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+p = Popen(["telnet", args.host, str(args.port)], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 set_nonblocking(p.stdout.fileno())
 
 state = "not connected"
@@ -85,4 +89,4 @@ def print_running_config():
     op("".join(configuration))
 
 connect_priviledged()
-print_running_config()
+if args.sh_run: print_running_config()
