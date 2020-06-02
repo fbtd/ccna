@@ -13,7 +13,7 @@ parser.add_argument("-s", "--show-run", "--sh-run", dest="sh_run",
                                     help="show running configuration",
                                     action="store_true")
 parser.add_argument("-l", "--load", help="load configuration from stdin",
-                                     action="store_true")
+                                    action="store_true")
 args = parser.parse_args()
 
 def set_nonblocking(fd):
@@ -24,20 +24,21 @@ op = print
 def print(*arg, **kwargs):
     if args.debug: op(*arg, **kwargs)
 
-p = Popen(["telnet", args.host, str(args.port)], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+p = Popen(["telnet", args.host, str(args.port)], stdin=PIPE, stdout=PIPE,
+                                                 stderr=PIPE)
 set_nonblocking(p.stdout.fileno())
 
 state = "not connected"
 lines = list()
 
-def send(msg, sleep_time=0.5, check_echo=True, add_crnl=True):
+def send(msg, sleep_time=0.5, check_echo=True):
     print("sending: ", msg.rstrip("\r\n"))
     msg = msg.encode()
-    if add_crnl: msg = msg + b"\r\n"
+    msg = msg + b"\r\n"
     p.stdin.write(msg)
     p.stdin.flush()
-    # wait for echo
     if len(msg) - 2 and check_echo:
+        # wait for echo
         time.sleep(sleep_time)
         echo = p.stdout.read(len(msg)-2)
         print(echo, msg[:-2])
@@ -86,7 +87,8 @@ def connect_priviledged():
 def print_running_config():
     send("sh run")
     time.sleep(5)
-    configuration = get_all_lines()[4:-2]
+    # TODO start with the first !
+    configuration = get_all_lines()[6:-2]
     print(".........")
     op("".join(configuration))
 
@@ -101,6 +103,9 @@ def load_config():
             assert "Invalid input detected" not in ret_line
             assert "Incomplete command" not in ret_line
             assert "Ambiguous command" not in ret_line
+    time.sleep(1)
+    get_all_lines()
+    send("copy running-config startup-config")
     time.sleep(1)
     get_all_lines()
 
