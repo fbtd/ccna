@@ -1,5 +1,15 @@
 # Notes
 
+## Lab setup
+
+### Sniffer
+enable eth0
+```
+sudo ip link set eth0 up
+sudo ip link set eth0 promisc on
+```
+tcpdump(8) capture
+`sudo tcpdump -i eth0 -w capture.pcap -c 20  "host rp1 or host rp2"`
 
 ## SSH
 add support for old Key Exchange Algorithms and Ciphers  

@@ -95,6 +95,11 @@ def print_running_config():
 def load_config():
     send("write erase")
     get_all_lines()
+    send("delete flash: vlan.dat")
+    send("")
+    send("")
+    send("")
+    get_all_lines()
     send("conf t")
     for line in sys.stdin:
         line = line.rstrip("\r\n")
@@ -106,7 +111,8 @@ def load_config():
     time.sleep(1)
     get_all_lines()
     send("copy running-config startup-config")
-    time.sleep(1)
+    send("")
+    time.sleep(3)
     get_all_lines()
 
 connect_priviledged()
