@@ -2,6 +2,15 @@
 
 ## Lab setup
 
+### Traffic
+
+using netcat
+pi@rp1:~$ `nc -lk 8080 `
+pi@rp2:~$ `vmstat -tn 2 | nc rp1 8080`
+
+#### TODO:
+ * ping pong script
+
 ### Sniffer
 enable eth0
 ```
